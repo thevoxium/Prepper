@@ -6,10 +6,10 @@ import os
 import logging
 from openai import OpenAI
 import assemblyai as aai
-import anthropic
 import uuid
 import PyPDF2
 import io
+from groq import Groq
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -23,13 +23,11 @@ Session(app)
 # Load environment variables
 ASSEMBLYAI_API_KEY = os.getenv('ASSEMBLYAI')
 OPENAI_API_KEY = os.getenv('OPENAI')
-ANTHROPIC_API_KEY = os.getenv('ANTHROPIC')
-
+GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 # Initialize clients
 aai.settings.api_key = ASSEMBLYAI_API_KEY
 openai_client = OpenAI(api_key=OPENAI_API_KEY)
-anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-
+groq_client = Groq(api_key = GROQ_API_KEY)
 # Ensure static directory exists
 os.makedirs('static', exist_ok=True)
 
@@ -57,21 +55,21 @@ def process_audio():
     transcript = transcribe_audio(audio_file)
     logger.info(f"Transcription result: {transcript}")
 
-    # 2. Generate response using Claude API
-    claude_response = generate_claude_response(transcript, role, interview_type, resume_text)
-    logger.info(f"Claude response: {claude_response}")
+    # 2. Generate response using groq API
+    groq_response = generate_groq_response(transcript, role, interview_type, resume_text)
+    logger.info(f"groq response: {groq_response}")
 
     # 3. Text to Speech using OpenAI (only for the latest response)
-    audio_response = text_to_speech(claude_response)
+    audio_response = text_to_speech(groq_response)
     logger.info(f"Generated audio response: {audio_response}")
 
     # 4. Update conversation history
     session['conversation'].append({"role": "user", "content": transcript})
-    session['conversation'].append({"role": "assistant", "content": claude_response})
+    session['conversation'].append({"role": "assistant", "content": groq_response})
 
     return jsonify({
         'transcript': transcript,
-        'response': claude_response,
+        'response': groq_response,
         'audio_url': audio_response,
         'conversation': session['conversation']
     })
@@ -98,28 +96,32 @@ def transcribe_audio(audio_file):
     logger.info("Audio transcription completed")
     return transcript.text
 
-def generate_claude_response(transcript, role, interview_type, resume_text):
-    logger.info("Generating Claude response")
+def generate_groq_response(transcript, role, interview_type, resume_text):
+    logger.info("Generating groq response")
     try:
         conversation = session.get('conversation', [])
         system_prompt = f"""You are an interviewer conducting a {interview_type} interview for a {role} position. 
         The candidate has provided the following resume:
-
         {resume_text}
-
         Based on this resume and the candidate's previous answers, respond to their latest answer and ask a relevant follow-up question. You don't have to read out the whole resume in any questions, just ask about one thing at a time. Keep your questions short and real interview like, in a real interview, questions are short and too the point. The interviewer is also to the point.  
         Keep the responses concise and professional, focusing on the candidate's experience and skills as they relate to the {role} position."""
-
-        message = anthropic_client.messages.create(
-            model="claude-3-sonnet-20240229",
-            max_tokens=1000,
-            system=system_prompt,
-            messages=conversation + [{"role": "user", "content": transcript}]
+        chat_completion = groq_client.chat.completions.create(
+        messages=[
+            {
+                "role":"system",
+                "content": system_prompt,
+            },
+            {
+                "role": "user", "content": transcript,
+            }
+        ],
+        model="llama3-8b-8192",
         )
-        logger.info("Claude response generated successfully")
-        return message.content[0].text
+        print(chat_completion.choices[0].message.content)
+        logger.info("groq response generated successfully")
+        return chat_completion.choices[0].message.content
     except Exception as e:
-        logger.error(f"Error generating Claude response: {str(e)}")
+        logger.error(f"Error generating groq response: {str(e)}")
         return "I apologize, but I encountered an error while processing your response. Could you please try again?"
 
 def text_to_speech(text):
