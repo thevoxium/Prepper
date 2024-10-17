@@ -8,6 +8,8 @@ from openai import OpenAI
 import assemblyai as aai
 import anthropic
 import uuid
+import PyPDF2
+import io
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -43,15 +45,20 @@ def process_audio():
     audio_file = request.files['audio']
     role = request.form['role']
     interview_type = request.form['interview_type']
+    resume_file = request.files['resume']
 
     logger.info(f"Processing audio for role: {role}, interview type: {interview_type}")
+
+    # Process the resume
+    resume_text = process_resume(resume_file)
+    logger.info("Resume processed successfully")
 
     # 1. Speech to Text using AssemblyAI
     transcript = transcribe_audio(audio_file)
     logger.info(f"Transcription result: {transcript}")
 
     # 2. Generate response using Claude API
-    claude_response = generate_claude_response(transcript, role, interview_type)
+    claude_response = generate_claude_response(transcript, role, interview_type, resume_text)
     logger.info(f"Claude response: {claude_response}")
 
     # 3. Text to Speech using OpenAI (only for the latest response)
@@ -69,6 +76,17 @@ def process_audio():
         'conversation': session['conversation']
     })
 
+def process_resume(resume_file):
+    try:
+        pdf_reader = PyPDF2.PdfReader(io.BytesIO(resume_file.read()))
+        resume_text = ""
+        for page in pdf_reader.pages:
+            resume_text += page.extract_text()
+        return resume_text
+    except Exception as e:
+        logger.error(f"Error processing resume: {str(e)}")
+        return ""
+
 def transcribe_audio(audio_file):
     logger.info("Starting audio transcription with AssemblyAI")
     transcriber = aai.Transcriber()
@@ -80,14 +98,22 @@ def transcribe_audio(audio_file):
     logger.info("Audio transcription completed")
     return transcript.text
 
-def generate_claude_response(transcript, role, interview_type):
+def generate_claude_response(transcript, role, interview_type, resume_text):
     logger.info("Generating Claude response")
     try:
         conversation = session.get('conversation', [])
+        system_prompt = f"""You are an interviewer conducting a {interview_type} interview for a {role} position. 
+        The candidate has provided the following resume:
+
+        {resume_text}
+
+        Based on this resume and the candidate's previous answers, respond to their latest answer and ask a relevant follow-up question. You don't have to read out the whole resume in any questions, just ask about one thing at a time. Keep your questions short and real interview like, in a real interview, questions are short and too the point. The interviewer is also to the point.  
+        Keep the responses concise and professional, focusing on the candidate's experience and skills as they relate to the {role} position."""
+
         message = anthropic_client.messages.create(
             model="claude-3-sonnet-20240229",
             max_tokens=1000,
-            system=f"You are an interviewer conducting a {interview_type} interview for a {role} position. Respond to the candidate's answer and ask a follow-up question. Keep the responses to the point, dont overspeak, keep it professional.",
+            system=system_prompt,
             messages=conversation + [{"role": "user", "content": transcript}]
         )
         logger.info("Claude response generated successfully")

@@ -22,6 +22,9 @@
             width: 100%;
             max-width: 400px;
             padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .input-field {
             width: 100%;
@@ -88,7 +91,7 @@
         }
         .start-button {
             display: block;
-            width: auto;
+            width: 100%;
             padding: 16px 32px;
             background-color: #7F5AF0;
             border: none;
@@ -143,6 +146,44 @@
             font-size: 18px;
             margin-top: 16px;
         }
+        .file-upload-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+        .file-upload {
+            display: inline-flex;
+            align-items: center;
+        }
+        .file-upload-input {
+            display: none;
+        }
+        .file-upload-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #7F5AF0;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .file-upload-btn:hover {
+            background-color: #6B4ED3;
+        }
+        .file-upload-btn svg {
+            margin-right: 8px;
+        }
+        .file-name {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #888;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -163,6 +204,19 @@
                 </div>
             </div>
             
+            <div class="file-upload-container">
+                <div class="file-upload">
+                    <input type="file" id="resumeUpload" class="file-upload-input" accept=".pdf">
+                    <label for="resumeUpload" class="file-upload-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Upload Resume
+                    </label>
+                </div>
+            </div>
+            <div id="fileName" class="file-name"></div>
+
             <button id="startInterview" class="start-button">
                 Start Interview
             </button>
@@ -179,8 +233,10 @@
             <p id="statusText">Press SPACEBAR when you're done speaking</p>
         </div>
     </div>
-    <audio id="audioPlayback" style="display:none;"></audio>
-    <script>
+    <audio id="audioPlayback" style="display:none;"></audio>    
+
+
+  <script>
         let mediaRecorder;
         let audioChunks = [];
         let isRecording = false;
@@ -216,9 +272,15 @@
             }
         });
 
+        document.getElementById('resumeUpload').addEventListener('change', function(event) {
+            const fileName = event.target.files[0]?.name;
+            document.getElementById('fileName').textContent = fileName || '';
+        });
+
         async function startInterview() {
             role = document.getElementById('role').value;
             interviewType = dropdown.querySelector('span').textContent;
+            const resumeFile = document.getElementById('resumeUpload').files[0];
             
             if (!role) {
                 alert('Please enter a role before starting the interview.');
@@ -227,6 +289,11 @@
 
             if (interviewType === 'Select interview type') {
                 alert('Please select an interview type before starting.');
+                return;
+            }
+
+            if (!resumeFile) {
+                alert('Please upload your resume before starting the interview.');
                 return;
             }
 
@@ -274,6 +341,7 @@
             formData.append('audio', audioBlob, 'recording.webm');
             formData.append('role', role);
             formData.append('interview_type', interviewType);
+            formData.append('resume', document.getElementById('resumeUpload').files[0]);
 
             axios.post('/process_audio', formData)
                 .then(response => {
