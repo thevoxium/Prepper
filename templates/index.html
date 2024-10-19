@@ -135,11 +135,11 @@
             color: #1F2937;
             background-color: #F3F4F6;
         }
-        .file-upload {
+        
+
+        .file-upload-btn {
             display: flex;
             align-items: center;
-        }
-        .file-upload-btn {
             padding: 0.5rem 1rem;
             border: 1px solid #D1D5DB;
             border-radius: 0.375rem;
@@ -148,10 +148,17 @@
             color: #374151;
             background-color: #FFFFFF;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, border-color 0.3s;
         }
         .file-upload-btn:hover {
             background-color: #F3F4F6;
+            border-color: #9CA3AF;
+        }
+        .file-upload-btn svg {
+            width: 1rem;
+            height: 1rem;
+            margin-right: 0.5rem;
+            fill: currentColor;
         }
         .file-name {
             margin-left: 0.5rem;
@@ -179,6 +186,27 @@
             outline: none;
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.5);
         }
+        .stop-button {
+            display: none;
+            padding: 0.5rem 1.5rem;
+            background-color: #EF4444;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 9999px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+        }
+        .stop-button:hover {
+            background-color: #DC2626;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .stop-button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.5);
+        }
         .audio-indicator {
             width: 10rem;
             height: 10rem;
@@ -198,13 +226,13 @@
             left: 50%;
             width: 100%;
             height: 100%;
-            background-color: rgba(16, 185, 129, 0.5); /* Darker green */
+            background-color: rgba(16, 185, 129, 0.5);
             border-radius: 50%;
             transform: translate(-50%, -50%) scale(0);
             animation: pulse 2s infinite;
         }
         .audio-indicator.speaker::before {
-            background-color: rgba(124, 58, 237, 0.5); /* Purple for speaker */
+            background-color: rgba(124, 58, 237, 0.5);
         }
         @keyframes pulse {
             0% {
@@ -253,11 +281,19 @@
                     </div>
                     <div class="input-group file-upload">
                         <input type="file" id="resumeUpload" class="file-upload-input" accept=".pdf,.doc,.docx" style="display: none;">
-                        <label for="resumeUpload" class="file-upload-btn btn-attach">Attach Resume</label>
+                         
+                        <label for="resumeUpload" class="file-upload-btn btn-attach">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clip-rule="evenodd" />
+                        </svg>
+
+                          Attach Resume
+                        </label>
                         <span id="fileName" class="file-name">No file chosen</span>
                     </div>
                     <div>
                         <button id="startInterview" class="btn-start start-button">Start Interview</button>
+                        <button id="stopInterview" class="stop-button">Stop Interview</button>
                     </div>
                 </div>
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
@@ -279,11 +315,13 @@
         let audioChunks = [];
         let isRecording = false;
         let role, interviewType;
+        let interviewInProgress = false;
 
         const dropdown = document.getElementById('interviewType');
         const dropdownMenu = document.getElementById('interviewTypeMenu');
         const dropdownItems = dropdownMenu.querySelectorAll('.dropdown-item');
         const startButton = document.getElementById('startInterview');
+        const stopButton = document.getElementById('stopInterview');
         const statusText = document.getElementById('statusText');
         const audioIndicator = document.querySelector('.audio-indicator');
 
@@ -305,6 +343,7 @@
         });
 
         startButton.addEventListener('click', startInterview);
+        stopButton.addEventListener('click', stopInterview);
 
         document.addEventListener('keydown', function(event) {
             if (event.code === 'Space' && isRecording) {
@@ -338,6 +377,10 @@
                 return;
             }
 
+            interviewInProgress = true;
+            startButton.style.display = 'none';
+            stopButton.style.display = 'inline-block';
+
             statusText.textContent = "Interview started. Speak now...";
             audioIndicator.classList.remove('speaker');
             
@@ -348,78 +391,111 @@
             } catch (error) {
                 console.error('Error accessing microphone:', error);
                 alert('Error accessing microphone. Please make sure you have given permission to use the microphone.');
+                resetInterview();
             }
         }
 
-        function setupMediaRecorder(stream) {
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.ondataavailable = (event) => {
-                audioChunks.push(event.data);
-            };
-            mediaRecorder.onstop = processAudio;
+        function stopInterview() {
+            if (interviewInProgress) {
+                interviewInProgress = false;
+                if (isRecording) {
+                    stopRecording();
+                }
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                }
+                statusText.textContent = 'Interview stopped';
+                audioIndicator.classList.remove('speaker');
+                resetInterview();
+            }
         }
 
-        function startRecording() {
+        function resetInterview() {
+        startButton.style.display = 'inline-block';
+        stopButton.style.display = 'none';
+        interviewInProgress = false;
+        isRecording = false;
+        if (mediaRecorder && mediaRecorder.stream) {
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        }
+    }
+
+    function setupMediaRecorder(stream) {
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = (event) => {
+            audioChunks.push(event.data);
+        };
+        mediaRecorder.onstop = processAudio;
+    }
+
+    function startRecording() {
+        if (interviewInProgress) {
             audioChunks = [];
             mediaRecorder.start();
             isRecording = true;
             statusText.textContent = "Press SPACEBAR when you're done speaking";
             audioIndicator.classList.remove('speaker');
         }
+    }
 
-        function stopRecording() {
-            if (isRecording) {
-                mediaRecorder.stop();
-                isRecording = false;
-                statusText.textContent = 'Waiting for interviewer response...';
-            }
+    function stopRecording() {
+        if (isRecording) {
+            mediaRecorder.stop();
+            isRecording = false;
+            statusText.textContent = 'Waiting for interviewer response...';
         }
+    }
 
-        function processAudio() {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            const formData = new FormData();
-            formData.append('audio', audioBlob, 'recording.webm');
-            formData.append('role', role);
-            formData.append('interview_type', interviewType);
-            formData.append('resume', document.getElementById('resumeUpload').files[0]);
+    function processAudio() {
+        if (!interviewInProgress) return;
 
-            axios.post('/process_audio', formData)
-                .then(response => {
-                    const audio = document.getElementById('audioPlayback');
-                    audio.src = response.data.audio_url + '?nocache=' + new Date().getTime();
-                    audio.style.display = 'none';
-                    
-                    // Change to speaker icon
-                    // Change to speaker icon
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.webm');
+        formData.append('role', role);
+        formData.append('interview_type', interviewType);
+        formData.append('resume', document.getElementById('resumeUpload').files[0]);
+
+        axios.post('/process_audio', formData)
+            .then(response => {
+                if (!interviewInProgress) return;
+
+                const audio = document.getElementById('audioPlayback');
+                audio.src = response.data.audio_url + '?nocache=' + new Date().getTime();
+                audio.style.display = 'none';
+                
+                audioIndicator.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor"/>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                `;
+                audioIndicator.classList.add('speaker');
+                
+                audio.play();
+                statusText.textContent = 'Listening to interviewer...';
+
+                audio.onended = () => {
+                    if (!interviewInProgress) return;
+
                     audioIndicator.innerHTML = `
                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor"/>
-                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" fill="currentColor"/>
+                            <path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     `;
-                    audioIndicator.classList.add('speaker');
-                    
-                    audio.play();
-                    statusText.textContent = 'Listening to interviewer...';
-
-                    audio.onended = () => {
-                        // Change back to microphone icon
-                        audioIndicator.innerHTML = `
-                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" fill="currentColor"/>
-                                <path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        `;
-                        audioIndicator.classList.remove('speaker');
-                        startRecording();
-                    };
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your response. Please try again.');
+                    audioIndicator.classList.remove('speaker');
                     startRecording();
-                });
-        }
-    </script>
+                };
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while processing your response. Please try again.');
+                if (interviewInProgress) {
+                    startRecording();
+                }
+            });
+    }
+</script>
 </body>
 </html>
