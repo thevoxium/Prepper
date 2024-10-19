@@ -3,248 +3,312 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interview Preparation App</title>
+    <title>AI Interview Assistant</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #121212;
-            color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
             margin: 0;
             padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(to bottom right, #EBF4FF, #E0E7FF);
         }
         .container {
+            background-color: #FFFFFF;
+            border-radius: 0.75rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            max-width: 64rem;
             width: 100%;
-            max-width: 400px;
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        }
+        .content {
+            padding: 2rem;
+        }
+        @media (min-width: 640px) {
+            .content {
+                padding: 3rem;
+            }
+        }
+        h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            text-align: center;
+            color: #1F2937;
+            margin-bottom: 2rem;
+        }
+        .grid {
+            display: grid;
+            gap: 2rem;
+        }
+        @media (min-width: 768px) {
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        .input-group {
+            margin-bottom: 1.5rem;
         }
         .input-field {
             width: 100%;
-            padding: 16px 0;
-            background-color: transparent;
+            padding: 0.5rem 0;
             border: none;
-            border-bottom: 2px solid #383838;
-            color: #ffffff;
-            font-size: 18px;
-            margin-bottom: 24px;
+            border-bottom: 1px solid #D1D5DB;
+            font-size: 1rem;
+            transition: border-color 0.3s;
             outline: none;
-            text-align: center;
+        }
+        .input-field:focus {
+            border-color: #6366F1;
         }
         .input-field::placeholder {
-            color: #888;
-            text-align: center;
+            color: #6B7280;
+        }
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.25rem;
         }
         .dropdown {
             position: relative;
-            margin-bottom: 24px;
+            display: inline-block;
             width: 100%;
         }
         .dropdown-toggle {
-            width: 100%;
-            padding: 16px 0;
-            background-color: transparent;
-            border: none;
-            border-bottom: 2px solid #383838;
-            color: #ffffff;
-            font-size: 18px;
-            text-align: center;
-            cursor: pointer;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: #FFFFFF;
+            border: 1px solid #D1D5DB;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            color: #374151;
+            cursor: pointer;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
-        .dropdown-toggle svg {
-            margin-left: 8px;
+        .dropdown-toggle:hover {
+            border-color: #9CA3AF;
+        }
+        .dropdown-toggle:focus {
+            outline: none;
+            border-color: #6366F1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
         }
         .dropdown-menu {
             position: absolute;
             top: 100%;
             left: 0;
-            width: 100%;
-            background-color: #1E1E1E;
-            border: 1px solid #383838;
-            border-radius: 4px;
-            margin-top: 8px;
-            display: none;
             z-index: 1000;
+            display: none;
+            width: 100%;
+            padding: 0.5rem 0;
+            margin: 0.125rem 0 0;
+            background-color: #FFFFFF;
+            border: 1px solid #D1D5DB;
+            border-radius: 0.375rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
         .dropdown-menu.show {
             display: block;
         }
         .dropdown-item {
-            padding: 12px 16px;
-            color: #ffffff;
-            font-size: 18px;
-            cursor: pointer;
-            text-align: center;
-        }
-        .dropdown-item:hover {
-            background-color: #2C2C2C;
-        }
-        .start-button {
             display: block;
             width: 100%;
-            padding: 16px 32px;
-            background-color: #7F5AF0;
-            border: none;
-            border-radius: 8px;
-            color: #ffffff;
-            font-size: 18px;
-            font-weight: 600;
+            padding: 0.5rem 1rem;
+            clear: both;
+            font-weight: 400;
+            color: #374151;
+            text-align: inherit;
+            white-space: nowrap;
+            background-color: transparent;
+            border: 0;
             cursor: pointer;
-            margin: 24px auto 0;
-            transition: background-color 0.3s ease;
         }
-        .start-button:hover {
-            background-color: #6B4ED3;
-        }
-        #interviewStatus {
-            margin-top: 32px;
-            text-align: center;
-        }
-        .audio-indicator {
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            background-color: #7F5AF0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 auto 24px;
-        }
-        .audio-indicator svg {
-            width: 60%;
-            height: 60%;
-            stroke: #ffffff;
-        }
-        .pulse {
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0% {
-                transform: scale(0.95);
-                box-shadow: 0 0 0 0 rgba(127, 90, 240, 0.7);
-            }
-            70% {
-                transform: scale(1);
-                box-shadow: 0 0 0 20px rgba(127, 90, 240, 0);
-            }
-            100% {
-                transform: scale(0.95);
-                box-shadow: 0 0 0 0 rgba(127, 90, 240, 0);
-            }
-        }
-        #statusText {
-            font-size: 18px;
-            margin-top: 16px;
-        }
-        .file-upload-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            margin-bottom: 24px;
+        .dropdown-item:hover {
+            color: #1F2937;
+            background-color: #F3F4F6;
         }
         .file-upload {
-            display: inline-flex;
+            display: flex;
             align-items: center;
         }
-        .file-upload-input {
-            display: none;
-        }
+        
+
+
         .file-upload-btn {
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            padding: 10px 20px;
-            background-color: #7F5AF0;
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            padding: 0.5rem 1rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
             font-weight: 500;
+            color: #374151;
+            background-color: #FFFFFF;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s, border-color 0.3s;
         }
         .file-upload-btn:hover {
-            background-color: #6B4ED3;
+            background-color: #F3F4F6;
+            border-color: #9CA3AF;
         }
         .file-upload-btn svg {
-            margin-right: 8px;
+            width: 1rem;
+            height: 1rem;
+            margin-right: 0.5rem;
+            fill: currentColor;
         }
         .file-name {
-            margin-top: 8px;
-            font-size: 14px;
-            color: #888;
+            margin-left: 0.5rem;
+            font-size: 0.875rem;
+            color: #6B7280;
+        }
+        
+
+
+        .start-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1.5rem;
+            background-color: #4F46E5;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 9999px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+        }
+        .start-button:hover {
+            background-color: #4338CA;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .start-button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.5);
+        }
+        .start-button svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            margin-right: 0.5rem;
+            fill: currentColor;
+        }
+
+        .audio-visualizer {
+            width: 300px;
+            height: 100px;
+          margin-left:50px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .bar {
+            width: 4px;
+            background-color: #10B981;
+            border-radius: 2px;
+        }
+        .waiting-wave {
+            width: 300px;
+            height: 100px;
+            display: none;
+        }
+        .waiting-wave path {
+            fill: none;
+            stroke: #8B5CF6;
+            stroke-width: 2;
+            stroke-linecap: round;
+        }
+        #statusText {
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: #9fa1a5;
             text-align: center;
+            margin-top: 1rem;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="interviewForm">
-            <input type="text" id="role" class="input-field" placeholder="Enter the role">
-            
-            <div class="dropdown">
-                <button class="dropdown-toggle" id="interviewType">
-                    <span>Select interview type</span>
-                    <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M1 1L6 6L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <div class="content">
+            <div class="grid">
+                <div>
+                    <div class="input-group">
+                        <input type="text" id="role" class="input-field" placeholder="Job Position">
+                    </div>
+                    <div class="input-group">
+                      <div class="dropdown">
+                        <button class="dropdown-toggle" id="interviewType">
+                          <span>Select interview type</span>
+                          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 1L6 6L11 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        </button>
+                         <div class="dropdown-menu" id="interviewTypeMenu">
+                            <div class="dropdown-item" data-value="hr">HR Interview</div>
+                            <div class="dropdown-item" data-value="technical">Technical Interview</div>
+                         </div>
+                      </div>
+                    </div>
+                   <div class="input-group file-upload">
+                        <input type="file" id="resumeUpload" class="file-upload-input" accept=".pdf,.doc,.docx" style="display: none;">
+                        <label for="resumeUpload" class="file-upload-btn btn-attach">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clip-rule="evenodd" />
+                            </svg>
+                            Attach Resume
+                        </label>
+                        <span id="fileName" class="file-name">No file chosen</span>
+                    </div>
+                    <div>
+                      <button id="startInterview" class="btn-start start-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd" />
+                            </svg>
+                            Start Interview
+                        </button>
+                    </div>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div id="audioVisualizer" class="audio-visualizer">
+                        <!-- Bars will be dynamically added here -->
+                    </div>
+                    <svg id="waitingWave" class="waiting-wave" viewBox="0 0 300 100">
+                        <path d="M0,50 Q75,30 150,50 T300,50" />
                     </svg>
-                </button>
-                <div class="dropdown-menu" id="interviewTypeMenu">
-                    <div class="dropdown-item" data-value="hr">HR Interview</div>
-                    <div class="dropdown-item" data-value="technical">Technical Interview</div>
+                    <p id="statusText">Press Start Interview to begin</p>
                 </div>
             </div>
-            
-            <div class="file-upload-container">
-                <div class="file-upload">
-                    <input type="file" id="resumeUpload" class="file-upload-input" accept=".pdf">
-                    <label for="resumeUpload" class="file-upload-btn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Upload Resume
-                    </label>
-                </div>
-            </div>
-            <div id="fileName" class="file-name"></div>
-
-            <button id="startInterview" class="start-button">
-                Start Interview
-            </button>
-        </div>
-        <div id="interviewStatus" style="display:none;">
-            <div class="audio-indicator pulse">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                    <line x1="12" y1="19" x2="12" y2="23"></line>
-                    <line x1="8" y1="23" x2="16" y2="23"></line>
-                </svg>
-            </div>
-            <p id="statusText">Press SPACEBAR when you're done speaking</p>
         </div>
     </div>
-    <audio id="audioPlayback" style="display:none;"></audio>    
 
-
-  <script>
+    <audio id="audioPlayback" style="display:none;"></audio>
+    <script>
         let mediaRecorder;
         let audioChunks = [];
         let isRecording = false;
         let role, interviewType;
+        let audioContext;
+        let analyser;
+        let dataArray;
+        let source;
+        let animationId;
 
         const dropdown = document.getElementById('interviewType');
         const dropdownMenu = document.getElementById('interviewTypeMenu');
         const dropdownItems = dropdownMenu.querySelectorAll('.dropdown-item');
+        const startButton = document.getElementById('startInterview');
+        const statusText = document.getElementById('statusText');
+        const audioVisualizer = document.getElementById('audioVisualizer');
+        const waitingWave = document.getElementById('waitingWave');
 
         dropdown.addEventListener('click', () => {
             dropdownMenu.classList.toggle('show');
@@ -263,7 +327,7 @@
             }
         });
 
-        document.getElementById('startInterview').addEventListener('click', startInterview);
+        startButton.addEventListener('click', startInterview);
 
         document.addEventListener('keydown', function(event) {
             if (event.code === 'Space' && isRecording) {
@@ -276,6 +340,45 @@
             const fileName = event.target.files[0]?.name;
             document.getElementById('fileName').textContent = fileName || '';
         });
+
+        function setupAudioVisualizer() {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 128;
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+            audioVisualizer.innerHTML = ''; // Clear existing bars
+            for (let i = 0; i < analyser.frequencyBinCount; i++) {
+                const bar = document.createElement('div');
+                bar.classList.add('bar');
+                audioVisualizer.appendChild(bar);
+            }
+        }
+
+        function updateAudioVisualizer() {
+            analyser.getByteFrequencyData(dataArray);
+            const bars = audioVisualizer.children;
+            for (let i = 0; i < bars.length; i++) {
+                const height = dataArray[i] / 255 * 100;
+                bars[i].style.height = height + '%';
+            }
+            animationId = requestAnimationFrame(updateAudioVisualizer);
+        }
+
+        function startWaitingAnimation() {
+            audioVisualizer.style.display = 'none';
+            waitingWave.style.display = 'block';
+            const path = waitingWave.querySelector('path');
+            let offset = 0;
+
+            function animateWave() {
+                offset -= 1;
+                path.setAttribute('d', `M0,50 Q75,${30 + Math.sin(offset * 0.1) * 10} 150,50 T300,50`);
+                requestAnimationFrame(animateWave);
+            }
+
+            animateWave();
+        }
 
         async function startInterview() {
             role = document.getElementById('role').value;
@@ -297,13 +400,18 @@
                 return;
             }
 
-            document.getElementById('interviewForm').style.display = 'none';
-            document.getElementById('interviewStatus').style.display = 'block';
+            setupAudioVisualizer();
+            statusText.textContent = "Interview started. Speak now...";
+            audioVisualizer.style.display = 'flex';
+            waitingWave.style.display = 'none';
             
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 setupMediaRecorder(stream);
+                source = audioContext.createMediaStreamSource(stream);
+                source.connect(analyser);
                 startRecording();
+                updateAudioVisualizer();
             } catch (error) {
                 console.error('Error accessing microphone:', error);
                 alert('Error accessing microphone. Please make sure you have given permission to use the microphone.');
@@ -322,16 +430,16 @@
             audioChunks = [];
             mediaRecorder.start();
             isRecording = true;
-            document.getElementById('statusText').textContent = "Press SPACEBAR when you're done speaking";
-            document.querySelector('.audio-indicator').classList.add('pulse');
+            statusText.textContent = "Press SPACEBAR when you're done speaking";
         }
 
         function stopRecording() {
             if (isRecording) {
                 mediaRecorder.stop();
                 isRecording = false;
-                document.getElementById('statusText').textContent = 'Waiting for interviewer response...';
-                document.querySelector('.audio-indicator').classList.remove('pulse');
+                statusText.textContent = 'Waiting for interviewer response...';
+                cancelAnimationFrame(animationId);
+                startWaitingAnimation();
             }
         }
 
@@ -349,26 +457,22 @@
                     audio.src = response.data.audio_url + '?nocache=' + new Date().getTime();
                     audio.style.display = 'none';
                     
-                    // Change to speaker icon
-                    document.querySelector('.audio-indicator svg').innerHTML = `
-                        <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
-                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                    `;
-                    document.querySelector('.audio-indicator').classList.remove('pulse');
+                    waitingWave.style.display = 'none';
+                    audioVisualizer.style.display = 'flex';
                     
                     audio.play();
-                    document.getElementById('statusText').textContent = 'Listening to interviewer...';
+                    statusText.textContent = 'Listening to interviewer...';
+
+                    // Connect audio playback to visualizer
+                    const playbackSource = audioContext.createMediaElementSource(audio);
+                    playbackSource.connect(analyser);
+                    analyser.connect(audioContext.destination);
+                    updateAudioVisualizer();
 
                     audio.onended = () => {
-                        // Change back to microphone icon
-                        document.querySelector('.audio-indicator svg').innerHTML = `
-                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                            <line x1="12" y1="19" x2="12" y2="23"></line>
-                            <line x1="8" y1="23" x2="16" y2="23"></line>
-                        `;
-                        document.querySelector('.audio-indicator').classList.add('pulse');
+                        cancelAnimationFrame(animationId);
                         startRecording();
+                        updateAudioVisualizer();
                     };
                 })
                 .catch(error => {
