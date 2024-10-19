@@ -139,12 +139,7 @@
             display: flex;
             align-items: center;
         }
-        
-
-
         .file-upload-btn {
-            display: flex;
-            align-items: center;
             padding: 0.5rem 1rem;
             border: 1px solid #D1D5DB;
             border-radius: 0.375rem;
@@ -153,30 +148,18 @@
             color: #374151;
             background-color: #FFFFFF;
             cursor: pointer;
-            transition: background-color 0.3s, border-color 0.3s;
+            transition: background-color 0.3s;
         }
         .file-upload-btn:hover {
             background-color: #F3F4F6;
-            border-color: #9CA3AF;
-        }
-        .file-upload-btn svg {
-            width: 1rem;
-            height: 1rem;
-            margin-right: 0.5rem;
-            fill: currentColor;
         }
         .file-name {
             margin-left: 0.5rem;
             font-size: 0.875rem;
             color: #6B7280;
         }
-        
-
-
         .start-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            display: inline-block;
             padding: 0.5rem 1.5rem;
             background-color: #4F46E5;
             color: #FFFFFF;
@@ -196,43 +179,53 @@
             outline: none;
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.5);
         }
-        .start-button svg {
-            width: 1.25rem;
-            height: 1.25rem;
-            margin-right: 0.5rem;
-            fill: currentColor;
-        }
-
-        .audio-visualizer {
-            width: 300px;
-            height: 100px;
-          margin-left:50px;
+        .audio-indicator {
+            width: 10rem;
+            height: 10rem;
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
+            margin-bottom: 1rem;
+            background-color: #FFFFFF;
+            position: relative;
+            overflow: hidden;
         }
-        .bar {
-            width: 4px;
-            background-color: #10B981;
-            border-radius: 2px;
+        .audio-indicator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(16, 185, 129, 0.5); /* Darker green */
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            animation: pulse 2s infinite;
         }
-        .waiting-wave {
-            width: 300px;
-            height: 100px;
-            display: none;
+        .audio-indicator.speaker::before {
+            background-color: rgba(124, 58, 237, 0.5); /* Purple for speaker */
         }
-        .waiting-wave path {
-            fill: none;
-            stroke: #8B5CF6;
-            stroke-width: 2;
-            stroke-linecap: round;
+        @keyframes pulse {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.5);
+                opacity: 0;
+            }
+        }
+        .audio-indicator svg {
+            width: 6rem;
+            height: 6rem;
+            z-index: 1;
         }
         #statusText {
             font-size: 1.125rem;
             font-weight: 500;
-            color: #9fa1a5;
+            color: #374151;
             text-align: center;
-            margin-top: 1rem;
         }
     </style>
 </head>
@@ -258,32 +251,22 @@
                          </div>
                       </div>
                     </div>
-                   <div class="input-group file-upload">
+                    <div class="input-group file-upload">
                         <input type="file" id="resumeUpload" class="file-upload-input" accept=".pdf,.doc,.docx" style="display: none;">
-                        <label for="resumeUpload" class="file-upload-btn btn-attach">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clip-rule="evenodd" />
-                            </svg>
-                            Attach Resume
-                        </label>
+                        <label for="resumeUpload" class="file-upload-btn btn-attach">Attach Resume</label>
                         <span id="fileName" class="file-name">No file chosen</span>
                     </div>
                     <div>
-                      <button id="startInterview" class="btn-start start-button">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd" />
-                            </svg>
-                            Start Interview
-                        </button>
+                        <button id="startInterview" class="btn-start start-button">Start Interview</button>
                     </div>
                 </div>
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                    <div id="audioVisualizer" class="audio-visualizer">
-                        <!-- Bars will be dynamically added here -->
+                    <div id="audioIndicator" class="audio-indicator">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" fill="currentColor"/>
+                            <path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                     </div>
-                    <svg id="waitingWave" class="waiting-wave" viewBox="0 0 300 100">
-                        <path d="M0,50 Q75,30 150,50 T300,50" />
-                    </svg>
                     <p id="statusText">Press Start Interview to begin</p>
                 </div>
             </div>
@@ -296,19 +279,13 @@
         let audioChunks = [];
         let isRecording = false;
         let role, interviewType;
-        let audioContext;
-        let analyser;
-        let dataArray;
-        let source;
-        let animationId;
 
         const dropdown = document.getElementById('interviewType');
         const dropdownMenu = document.getElementById('interviewTypeMenu');
         const dropdownItems = dropdownMenu.querySelectorAll('.dropdown-item');
         const startButton = document.getElementById('startInterview');
         const statusText = document.getElementById('statusText');
-        const audioVisualizer = document.getElementById('audioVisualizer');
-        const waitingWave = document.getElementById('waitingWave');
+        const audioIndicator = document.querySelector('.audio-indicator');
 
         dropdown.addEventListener('click', () => {
             dropdownMenu.classList.toggle('show');
@@ -341,45 +318,6 @@
             document.getElementById('fileName').textContent = fileName || '';
         });
 
-        function setupAudioVisualizer() {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            analyser = audioContext.createAnalyser();
-            analyser.fftSize = 128;
-            dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-            audioVisualizer.innerHTML = ''; // Clear existing bars
-            for (let i = 0; i < analyser.frequencyBinCount; i++) {
-                const bar = document.createElement('div');
-                bar.classList.add('bar');
-                audioVisualizer.appendChild(bar);
-            }
-        }
-
-        function updateAudioVisualizer() {
-            analyser.getByteFrequencyData(dataArray);
-            const bars = audioVisualizer.children;
-            for (let i = 0; i < bars.length; i++) {
-                const height = dataArray[i] / 255 * 100;
-                bars[i].style.height = height + '%';
-            }
-            animationId = requestAnimationFrame(updateAudioVisualizer);
-        }
-
-        function startWaitingAnimation() {
-            audioVisualizer.style.display = 'none';
-            waitingWave.style.display = 'block';
-            const path = waitingWave.querySelector('path');
-            let offset = 0;
-
-            function animateWave() {
-                offset -= 1;
-                path.setAttribute('d', `M0,50 Q75,${30 + Math.sin(offset * 0.1) * 10} 150,50 T300,50`);
-                requestAnimationFrame(animateWave);
-            }
-
-            animateWave();
-        }
-
         async function startInterview() {
             role = document.getElementById('role').value;
             interviewType = dropdown.querySelector('span').textContent;
@@ -400,18 +338,13 @@
                 return;
             }
 
-            setupAudioVisualizer();
             statusText.textContent = "Interview started. Speak now...";
-            audioVisualizer.style.display = 'flex';
-            waitingWave.style.display = 'none';
+            audioIndicator.classList.remove('speaker');
             
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 setupMediaRecorder(stream);
-                source = audioContext.createMediaStreamSource(stream);
-                source.connect(analyser);
                 startRecording();
-                updateAudioVisualizer();
             } catch (error) {
                 console.error('Error accessing microphone:', error);
                 alert('Error accessing microphone. Please make sure you have given permission to use the microphone.');
@@ -431,6 +364,7 @@
             mediaRecorder.start();
             isRecording = true;
             statusText.textContent = "Press SPACEBAR when you're done speaking";
+            audioIndicator.classList.remove('speaker');
         }
 
         function stopRecording() {
@@ -438,8 +372,6 @@
                 mediaRecorder.stop();
                 isRecording = false;
                 statusText.textContent = 'Waiting for interviewer response...';
-                cancelAnimationFrame(animationId);
-                startWaitingAnimation();
             }
         }
 
@@ -457,22 +389,29 @@
                     audio.src = response.data.audio_url + '?nocache=' + new Date().getTime();
                     audio.style.display = 'none';
                     
-                    waitingWave.style.display = 'none';
-                    audioVisualizer.style.display = 'flex';
+                    // Change to speaker icon
+                    // Change to speaker icon
+                    audioIndicator.innerHTML = `
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor"/>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    `;
+                    audioIndicator.classList.add('speaker');
                     
                     audio.play();
                     statusText.textContent = 'Listening to interviewer...';
 
-                    // Connect audio playback to visualizer
-                    const playbackSource = audioContext.createMediaElementSource(audio);
-                    playbackSource.connect(analyser);
-                    analyser.connect(audioContext.destination);
-                    updateAudioVisualizer();
-
                     audio.onended = () => {
-                        cancelAnimationFrame(animationId);
+                        // Change back to microphone icon
+                        audioIndicator.innerHTML = `
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" fill="currentColor"/>
+                                <path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        `;
+                        audioIndicator.classList.remove('speaker');
                         startRecording();
-                        updateAudioVisualizer();
                     };
                 })
                 .catch(error => {
