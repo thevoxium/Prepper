@@ -32,10 +32,16 @@ groq_client = Groq(api_key = GROQ_API_KEY)
 os.makedirs('static', exist_ok=True)
 
 @app.route('/')
-def index():
+def landing():
     logger.info("Rendering index page")
+    return render_template('landing.html')
+
+@app.route('/app')
+def index():
+    logger.info('Rendering app page')
     session['conversation'] = []
     return render_template('index.html')
+
 
 @app.route('/process_audio', methods=['POST'])
 def process_audio():

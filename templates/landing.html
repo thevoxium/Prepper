@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyred - Master Your Interviews with AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #8A4FFF;
+            --secondary-color: #F3F0FF;
+            --text-color: #333333;
+            --light-text-color: #666666;
+            --background-color: #FFFFFF;
+        }
+
+        .dark-mode {
+            --primary-color: #B088FF;
+            --secondary-color: #2A2A2A;
+            --text-color: #E0E0E0;
+            --light-text-color: #B0B0B0;
+            --background-color: #1A1A1A;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+      
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: var(--background-color);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .close {
+            color: var(--light-text-color);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: var(--text-color);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        .modal p {
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+
+        .modal form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .modal input[type="email"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid var(--light-text-color);
+            border-radius: 5px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        .modal .cta-button {
+            width: 30%;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        header {
+            background-color: var(--background-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+            transition: background-color 0.3s ease;
+        }
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+        .logo svg {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+        }
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        .nav-links a {
+            color: var(--light-text-color);
+            text-decoration: none;
+            margin-left: 1.5rem;
+            transition: color 0.3s ease;
+        }
+        .nav-links a:hover {
+            color: var(--primary-color);
+        }
+        .sign-up-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+        .sign-up-btn:hover {
+            background-color: #7540E0;
+        }
+        main {
+            flex: 1 0 auto;
+        }
+        .hero {
+            padding: 120px 0 60px;
+        }
+        .hero-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+        }
+        .hero-content {
+            flex: 1;
+            max-width: 50%;
+        }
+        .hero-image {
+            flex: 1;
+            text-align: right;
+        }
+        .hero-image img {
+            max-width: 100%;
+            height: auto;
+            margin-left: 4px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 2.5rem;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+        }
+        .subtitle {
+            font-size: 1rem;
+            color: var(--light-text-color);
+            margin-bottom: 2rem;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+        .cta-button:hover {
+            background-color: #7540E0;
+        }
+        .secondary-button {
+            display: inline-block;
+            background-color: transparent;
+            color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 500;
+            margin-left: 1rem;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            border: 1px solid var(--primary-color);
+        }
+        .secondary-button:hover {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+        .features {
+            padding: 60px 0;
+            background-color: var(--background-color);
+            transition: background-color 0.3s ease;
+        }
+        .features h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        .feature-card {
+            background-color: var(--secondary-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+        .feature-description {
+            font-size: 0.9rem;
+            color: var(--light-text-color);
+        }
+        footer {
+            background-color: var(--background-color);
+            padding: 1rem 0;
+            text-align: center;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+            transition: background-color 0.3s ease;
+        }
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+        .social-icons a {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+          text-decoration: none;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s ease;
+        }
+        .social-icons a:hover {
+            background-color: #7540E0;
+        }
+        .social-icons i {
+            color: #fff;
+            font-size: 1.2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .hero-content {
+                max-width: 100%;
+                text-align: center;
+            }
+            .hero-image {
+                margin-top: 2rem;
+                text-align: center;
+                width: 100%;
+            }
+            .hero-image img {
+                max-width: 80%;
+                margin: 0 auto;
+                display: block;
+            }
+            .secondary-button {
+                margin-left: 0;
+                margin-top: 1rem;
+            }
+        }
+        .nav-login-btn:hover{
+          color:white !important;
+        }
+        .dark-mode-toggle {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+            margin-right: 1rem;
+            transition: color 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="40" height="40">
+                        <defs>
+                            <linearGradient id="outerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#a0b3ff;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#e0b1ff;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="50" cy="50" r="50" fill="url(#outerGradient)" />
+                        <circle cx="50" cy="50" r="42" fill="#1a1b26" />
+                        <line x1="35" y1="35" x2="65" y2="65" stroke="#ffffff" stroke-width="4" stroke-linecap="round" />
+                    </svg>
+                    <span class="logo-text">Hyred</span>
+                </div>
+                <div class="nav-links">
+                    <button id="darkModeToggle" class="dark-mode-toggle" aria-label="Toggle Dark Mode">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <a href="{{ url_for('index') }}" class="secondary-button nav-login-btn">Login</a>
+
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container hero-container">
+                <div class="hero-content">
+                    <h1>Master Your Interviews with AI and Get Hyred!</h1>
+                    <p class="subtitle">Prepare, practice, and perfect your interview skills with our cutting-edge AI Interview Assistant. Get personalized feedback and improve your chances of landing your dream job.</p>
+                    <a href="#" class="cta-button">Sign Up for Beta</a>
+                    <a href="{{ url_for('index') }}" class="secondary-button">Login</a>
+
+                </div>
+                <div class="hero-image">
+                    <img src="https://raw.githubusercontent.com/thevoxium/prepper-web/refs/heads/main/static/image.webp" alt="AI Interview Assistant" />
+                </div>
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="container">
+                <h2>Key Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h3 class="feature-title">AI-Powered Interviews</h3>
+                        <p class="feature-description">Experience realistic interview scenarios with questions tailored to your Resume</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3 class="feature-title">Personalized Feedback</h3>
+                        <p class="feature-description">Receive specifc advice to improve your interview performance and confidence, find the areas that need improvement</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-dumbbell"></i>
+                        </div>
+                        <h3 class="feature-title">Unlimited Practice</h3>
+                        <p class="feature-description">Enhance your skills with practice interviews for just half the cost of your monthly Netflix subscription</p>
+                    </div>
+                    
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="social-icons">
+                <a href="https://x.com/Anshul627/" aria-label="Twitter">
+                    <i class="fab fa-twitter"></i>
+                </a>
+                <a href="https://github.com/thevoxium" aria-label="GitHub">
+                  <i class="fab fa-github"></i>
+                </a>
+                <a href="https://linkedin.com/in/anshul-sharma-vox" aria-label="LinkedIn">
+                    <i class="fab fa-linkedin-in"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+    <div id="betaPopup" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Sign Up for Beta</h2>
+            <p>Enter your email to join our waiting list:</p>
+            <form id="signupForm">
+                <input type="email" id="betaEmail" placeholder="Your email" required>
+                <button type="submit" id="submitBetaEmail" class="cta-button">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Get the modal
+        var modal = document.getElementById("betaPopup");
+
+        // Get all elements with class "sign-up-btn" and "cta-button"
+        var btns = document.querySelectorAll(".sign-up-btn, .cta-button");
+
+        // Get the <span> element that closes the modal
+        var span = document.getElementsByClassName("close")[0];
+
+        // When the user clicks on the button, open the modal
+        btns.forEach(function(btn) {
+            btn.onclick = function(event) {
+                event.preventDefault();
+                modal.style.display = "flex";
+            }
+        });
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        // Handle form submission
+        document.getElementById("signupForm").onsubmit = function(event) {
+            event.preventDefault();
+            var email = document.getElementById("betaEmail").value;
+            alert("Thank you for signing up with: " + email);
+            modal.style.display = "none";
+            // Here you would typically send the email to your server
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const submitBetaEmail = document.getElementById('submitBetaEmail');
+
+            submitBetaEmail.addEventListener('click', () => {
+                const email = document.getElementById('betaEmail').value;
+                if (email) {
+                    fetch('/submit_email', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ email: email }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message);
+                            betaPopup.style.display = 'none';
+                        } else {
+                            alert('Error submitting email. Please try again.');
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                        alert('Error submitting email. Please try again.');
+                    });
+                } else {
+                    alert('Please enter a valid email address.');
+                }
+            });
+        });
+
+        // Dark mode toggle functionality
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const body = document.body;
+        const icon = darkModeToggle.querySelector('i');
+
+        darkModeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            if (body.classList.contains('dark-mode')) {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            } else {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            }
+        });
+    </script>
+</body>
+</html>
