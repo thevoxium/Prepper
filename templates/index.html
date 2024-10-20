@@ -271,7 +271,77 @@
             color: #adadad;
             text-align: center;
         }
-    </style>
+
+        .difficulty-toggle-container {
+          margin-top: 10px; /* As requested */
+        }
+
+        .difficulty-toggle {
+          display: flex;
+          margin-top:20px;
+          margin-bottom:-25px;
+          align-items: center;
+          justify-content: flex-start; /* Align items to the left */
+          gap: 8px; /* Small gap between elements */
+        }
+
+        .toggle-label {
+          font-size: 0.875rem;
+          color: #374151;
+          margin: 0; /* Remove any default margins */
+        }
+
+        .switch {
+          position: relative;
+          display: inline-block;
+          width: 46px; /* Slightly smaller */
+          height: 24px; /* Slightly smaller */
+          margin: 0 4px; /* Small margin on sides of the switch */
+        }
+
+        .slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: #ccc;
+          transition: .4s;
+        }
+
+        .slider:before {
+          position: absolute;
+          content: "";
+          height: 18px; /* Adjusted for smaller switch */
+          width: 18px; /* Adjusted for smaller switch */
+          left: 3px;
+          bottom: 3px;
+          background-color: white;
+          transition: .4s;
+        }
+
+        input:checked + .slider {
+          background-color: #6366F1;
+        }
+
+        input:focus + .slider {
+          box-shadow: 0 0 1px #6366F1;
+        }
+
+        input:checked + .slider:before {
+          transform: translateX(22px);
+        }
+
+        .slider.round {
+          border-radius: 24px;
+        }
+
+        .slider.round:before {
+          border-radius: 50%;
+        }
+        
+  </style>
 </head>
 <body>
     <div class="container">
@@ -289,6 +359,20 @@
                             <path d="M1 1L6 6L11 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                           </svg>
                         </button>
+
+                        <div class="input-group">
+                          <div class="input-group difficulty-toggle-container">
+                          <div class="difficulty-toggle">
+                            <span class="toggle-label">Keep it Easy</span>
+                            <label class="switch">
+                              <input type="checkbox" id="difficultyToggle">
+                              <span class="slider round"></span>
+                            </label>
+                            <span class="toggle-label">Grill me</span>
+                          </div>
+                        </div>
+
+                        </div>
                          <div class="dropdown-menu" id="interviewTypeMenu">
                             <div class="dropdown-item" data-value="hr">HR Interview</div>
                             <div class="dropdown-item" data-value="technical">Technical Interview</div>
@@ -344,6 +428,13 @@
         const stopButton = document.getElementById('stopInterview');
         const statusText = document.getElementById('statusText');
         const audioIndicator = document.querySelector('.audio-indicator');
+        const difficultyToggle = document.getElementById('difficultyToggle');
+
+        difficultyToggle.addEventListener('change', function() {
+          const difficulty = this.checked ? 'hard' : 'easy';
+          console.log('Interview difficulty set to:', difficulty);
+        });
+
 
         dropdown.addEventListener('click', () => {
             dropdownMenu.classList.toggle('show');
@@ -456,6 +547,7 @@
                 mediaRecorder.start();
                 isRecording = true;
                 statusText.textContent = "Press SPACE when you're done answering";
+                subtitleElement.textContent = ''; 
                 audioIndicator.classList.add('pulsating', 'user-speaking');
                 audioIndicator.classList.remove('ai-speaking');
             }
@@ -494,7 +586,10 @@
             formData.append('role', role);
             formData.append('interview_type', interviewType);
             formData.append('resume', document.getElementById('resumeUpload').files[0]);
+            const difficulty = difficultyToggle.checked ? 'hard' : 'easy';
+            formData.append('difficulty', difficulty);
 
+           
             axios.post('/process_audio', formData)
                 .then(response => {
                     if (!interviewInProgress) return;

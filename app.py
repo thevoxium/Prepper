@@ -44,6 +44,13 @@ def process_audio():
     role = request.form['role']
     interview_type = request.form['interview_type']
     resume_file = request.files['resume']
+    difficulty_input = request.form['difficulty']
+    difficulty = ""
+
+    if difficulty_input == "hard":
+        difficulty = "Keep the interview very difficult, ask very hard questions (whether techincal or HR like) from the user. Remember to ask hard quality questions."
+    else:
+        difficulty = "User has asked for easy interview, but ask quality questions."
 
     logger.info(f"Processing audio for role: {role}, interview type: {interview_type}")
 
@@ -56,7 +63,7 @@ def process_audio():
     logger.info(f"Transcription result: {transcript}")
 
     # 2. Generate response using groq API
-    groq_response = generate_groq_response(transcript, role, interview_type, resume_text)
+    groq_response = generate_groq_response(transcript, role, interview_type, resume_text, difficulty)
     logger.info(f"groq response: {groq_response}")
 
     # 3. Text to Speech using OpenAI (only for the latest response)
@@ -96,12 +103,12 @@ def transcribe_audio(audio_file):
     logger.info("Audio transcription completed")
     return transcript.text
 
-def generate_groq_response(transcript, role, interview_type, resume_text):
+def generate_groq_response(transcript, role, interview_type, resume_text, difficulty):
     logger.info("Generating groq response")
     try:
         conversation = session.get('conversation', [])
         system_prompt = f"""You are an experienced technical interviewer conducting a {interview_type} interview for a {role} position. Your goal is to rigorously assess the candidate's technical skills and problem-solving abilities through direct, focused questioning and dynamic follow-ups.
-
+Difficult set for the interview: {difficulty}
 Resume: {resume_text}
 
 Guidelines:
@@ -143,11 +150,6 @@ Continuously evaluate the candidate's:
 - Capability to make connections between different technical concepts
 
 Remember to keep the interview challenging but not overwhelming. Use the candidate's responses to guide the direction of the interview, exploring various technical areas relevant to the role. This approach allows for a comprehensive assessment of both the candidate's listed skills and their overall technical acumen."""       
-
-
-
-
-
 
         chat_completion = groq_client.chat.completions.create(
         messages=[
