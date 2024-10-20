@@ -476,6 +476,11 @@
 
         startButton.addEventListener('click', startInterview);
         stopButton.addEventListener('click', stopInterview);
+        document.addEventListener('click', function(event) {
+            if (isRecording) {
+                stopRecording();
+            }
+          });
 
         document.addEventListener('keydown', function(event) {
             if (event.code === 'Space' && isRecording) {
@@ -567,7 +572,7 @@
                 audioChunks = [];
                 mediaRecorder.start();
                 isRecording = true;
-                statusText.textContent = "Press SPACE when you're done answering";
+                statusText.textContent = "Space or Click when you're done answering";
                 subtitleElement.textContent = ''; 
                 audioIndicator.classList.add('pulsating', 'user-speaking');
                 audioIndicator.classList.remove('ai-speaking');

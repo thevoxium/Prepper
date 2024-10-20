@@ -12,7 +12,7 @@ import io
 from groq import Groq
 from authlib.integrations.flask_client import OAuth
 from authlib.integrations.base_client.errors import OAuthError
-
+from flask_talisman import Talisman
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
