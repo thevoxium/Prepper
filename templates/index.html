@@ -211,6 +211,26 @@
             outline: none;
             box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.5);
         }
+        .subtitle-container {
+            position: relative;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 600px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top:25px;
+        }
+
+        .subtitle-text {
+            color: black;
+            font-size: 15px;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
         .audio-indicator {
             width: 10rem;
             height: 5rem;
@@ -246,9 +266,9 @@
         .audio-bar:nth-child(3) { animation-delay: 0.4s; }
         .audio-bar:nth-child(4) { animation-delay: 0.6s; }
         #statusText {
-            font-size: 1.125rem;
+            font-size: 1rem;
             font-weight: 500;
-            color: #374151;
+            color: #adadad;
             text-align: center;
         }
     </style>
@@ -296,6 +316,9 @@
                         <div class="audio-bar"></div>
                         <div class="audio-bar"></div>
                     </div>
+                    <div id="subtitleContainer" class="subtitle-container">
+                       <p id="subtitleText" class="subtitle-text"></p>
+                    </div>
                     <p id="statusText">Press Start Interview to begin</p>
                 </div>
             </div>
@@ -309,6 +332,10 @@
         let isRecording = false;
         let role, interviewType;
         let interviewInProgress = false;
+        let subtitleText = '';
+        let subtitleIndex = 0;
+        const subtitleElement = document.getElementById('subtitleText');
+        let subtitleInterval;
 
         const dropdown = document.getElementById('interviewType');
         const dropdownMenu = document.getElementById('interviewTypeMenu');
@@ -428,7 +455,7 @@
                 audioChunks = [];
                 mediaRecorder.start();
                 isRecording = true;
-                statusText.textContent = "Press SPACEBAR when you're done speaking";
+                statusText.textContent = "Press SPACE when you're done answering";
                 audioIndicator.classList.add('pulsating', 'user-speaking');
                 audioIndicator.classList.remove('ai-speaking');
             }
@@ -443,6 +470,21 @@
             }
         }
 
+
+        
+        
+        function updateSubtitle() {
+            if (subtitleIndex < subtitleText.length) {
+                let end = subtitleIndex + 50;  // Display about 50 characters at a time
+                if (end > subtitleText.length) end = subtitleText.length;
+                
+                let currentSubtitle = subtitleText.substring(subtitleIndex, end);
+                subtitleElement.textContent = currentSubtitle;
+                
+                subtitleIndex = end;
+                setTimeout(updateSubtitle, 3750);  // Update every 3.75 seconds
+            }
+        }
         function processAudio() {
             if (!interviewInProgress) return;
 
@@ -464,6 +506,13 @@
                     audioIndicator.classList.add('pulsating', 'ai-speaking');
                     audioIndicator.classList.remove('user-speaking');
                     
+                    subtitleText = response.data.response;
+                    subtitleIndex = 0;
+                    updateSubtitle();
+
+                    audio.onplay = () => {
+                        startSubtitles();
+                    };
                     audio.play();
                     statusText.textContent = 'Listening to interviewer...';
 
@@ -471,6 +520,7 @@
                         if (!interviewInProgress) return;
 
                         audioIndicator.classList.remove('pulsating', 'ai-speaking');
+                        subtitleElement.textContent = '';  // Clear subtitle when audio ends
                         startRecording();
                     };
                 })
