@@ -1,6 +1,6 @@
 # app.py
 
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_session import Session
 import os
 import logging
@@ -10,9 +10,11 @@ import uuid
 import PyPDF2
 import io
 from groq import Groq
+from authlib.integrations.flask_client import OAuth
+from authlib.integrations.base_client.errors import OAuthError
 
 # Set up logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
@@ -24,24 +26,93 @@ Session(app)
 ASSEMBLYAI_API_KEY = os.getenv('ASSEMBLYAI')
 OPENAI_API_KEY = os.getenv('OPENAI')
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
+print(GOOGLE_CLIENT_SECRET)
+print(GOOGLE_CLIENT_ID)
+# Print out environment variables for debugging
+logger.debug(f"GOOGLE_CLIENT_ID: {GOOGLE_CLIENT_ID}")
+logger.debug(f"GOOGLE_CLIENT_SECRET: {'*' * len(GOOGLE_CLIENT_SECRET) if GOOGLE_CLIENT_SECRET else 'Not set'}")
+
 # Initialize clients
 aai.settings.api_key = ASSEMBLYAI_API_KEY
 openai_client = OpenAI(api_key=OPENAI_API_KEY)
 groq_client = Groq(api_key = GROQ_API_KEY)
+
 # Ensure static directory exists
 os.makedirs('static', exist_ok=True)
 
+# OAuth Setup
+oauth = OAuth(app)
+
+
+google = oauth.register(
+    name='google',
+    client_id=GOOGLE_CLIENT_ID,
+    client_secret=GOOGLE_CLIENT_SECRET,
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={
+        'scope': 'openid email profile',
+        'prompt': 'select_account'
+    }
+)
+
+google = oauth.register(
+    name='google',
+    client_id=GOOGLE_CLIENT_ID,
+    client_secret=GOOGLE_CLIENT_SECRET,
+    access_token_url='https://accounts.google.com/o/oauth2/token',
+    access_token_params=None,
+    authorize_url='https://accounts.google.com/o/oauth2/auth',
+    authorize_params=None,
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    api_base_url='https://www.googleapis.com/oauth2/v1/',
+    client_kwargs={'scope': 'email profile'},
+)
+
 @app.route('/')
 def landing():
-    logger.info("Rendering index page")
+    logger.info("Rendering landing page")
     return render_template('landing.html')
+
+@app.route('/login')
+def login():
+    redirect_uri = url_for('authorized', _external=True)
+    logger.debug(f"Redirect URI: {redirect_uri}")
+    return google.authorize_redirect(redirect_uri)
+
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    return redirect(url_for('landing'))
+
+@app.route('/login/callback')
+def authorized():
+    try:
+        logger.debug("Entering authorized callback")
+        token = google.authorize_access_token()
+        logger.debug(f"Received token: {token}")
+        resp = google.get('https://www.googleapis.com/oauth2/v3/userinfo')
+        logger.debug(f"User info response: {resp.json()}")
+        user_info = resp.json()
+        session['user'] = user_info
+        logger.info(f"User {user_info.get('email')} successfully authenticated")
+        return redirect(url_for('index'))
+    except OAuthError as e:
+        logger.error(f"OAuth Error: {str(e)}")
+        return f"An OAuth error occurred: {str(e)}", 400
+    except Exception as e:
+        logger.error(f"Unexpected error during authorization: {str(e)}")
+        return f"An unexpected error occurred: {str(e)}", 500
 
 @app.route('/app')
 def index():
+    if 'user' not in session:
+        logger.info("User not in session, redirecting to login")
+        return redirect(url_for('login'))
     logger.info('Rendering app page')
     session['conversation'] = []
     return render_template('index.html')
-
 
 @app.route('/process_audio', methods=['POST'])
 def process_audio():

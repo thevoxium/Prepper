@@ -17,6 +17,25 @@
             justify-content: center;
             background: linear-gradient(to bottom right, #EBF4FF, #E0E7FF);
         }
+        .logout-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            background-color: #4F46E5;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+        }
+        .logout-button:hover {
+            background-color: #4338CA;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
         .container {
             background-color: #FFFFFF;
             border-radius: 0.75rem;
@@ -344,8 +363,10 @@
   </style>
 </head>
 <body>
+  <a href="{{ url_for('logout') }}" class="logout-button">Logout</a>
     <div class="container">
         <div class="content">
+        
             <div class="grid">
                 <div>
                     <div class="input-group">
